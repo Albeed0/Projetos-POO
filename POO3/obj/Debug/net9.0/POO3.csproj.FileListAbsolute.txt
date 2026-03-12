@@ -1,0 +1,14 @@
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.GeneratedMSBuildEditorConfig.editorconfig
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.AssemblyInfoInputs.cache
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.AssemblyInfo.cs
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.csproj.CoreCompileInputs.cache
+/home/arthyzxs/Documentos/Projetos POO/POO3/bin/Debug/net9.0/POO3
+/home/arthyzxs/Documentos/Projetos POO/POO3/bin/Debug/net9.0/POO3.deps.json
+/home/arthyzxs/Documentos/Projetos POO/POO3/bin/Debug/net9.0/POO3.runtimeconfig.json
+/home/arthyzxs/Documentos/Projetos POO/POO3/bin/Debug/net9.0/POO3.dll
+/home/arthyzxs/Documentos/Projetos POO/POO3/bin/Debug/net9.0/POO3.pdb
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.dll
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/refint/POO3.dll
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.pdb
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/POO3.genruntimeconfig.cache
+/home/arthyzxs/Documentos/Projetos POO/POO3/obj/Debug/net9.0/ref/POO3.dll
