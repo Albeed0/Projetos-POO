@@ -8,7 +8,7 @@ class Program
     static void Main(string[] args)
     {
         Menu menu = new();
-        menu.OpcoesAdmin();
+        menu.ExibirMenu();
     }
 }
 
@@ -16,16 +16,56 @@ class Program
 public class Menu
 {
     Logica logica = new();
+    Usuario? usuarioLogado;
     public void ExibirMenu()
     {
-
         Console.WriteLine("Bem-vindo à Biblioteca! Por favor, coloque seu usuário e email para acessar o sistema.");
         string nome = Console.ReadLine() ?? "";
-        OpcoesAdmin();
+        string email = Console.ReadLine() ?? "";
+        var usuario = logica.Login(nome, email);
+
+
+        if(usuario is Admin)
+        {
+            usuarioLogado = usuario;
+            OpcoesAdmin();
+        }
+        else if(usuario is UsuarioComum)
+        {
+            usuarioLogado = usuario;
+            OpcoesNormais();
+        }
+        else if(usuario == null)
+        {
+            Console.WriteLine("Usuário não encontrado. Deseja se cadastrar? (s/n)");
+            string resposta = Console.ReadLine() ?? "n";
+            if(resposta.ToLower() == "s")
+            {
+                Console.WriteLine("Digite seu nome:");
+                string nomeCadastro = Console.ReadLine() ?? "";
+                Console.WriteLine("Digite seu email:");
+                string emailCadastro = Console.ReadLine() ?? "";
+                var novoUsuario = new UsuarioComum(nomeCadastro, emailCadastro);
+                logica.CadastrarUsuario(novoUsuario);
+                Console.WriteLine("Cadastro realizado com sucesso! Agora você pode fazer login e usar o sistema da biblioteca.");
+                usuarioLogado = novoUsuario;
+                OpcoesNormais();
+            }
+            else
+            {
+                Console.WriteLine("Encerrando o sistema...");
+            }
+        }
+         else
+        {  
+            Console.WriteLine("Tipo de usuário desconhecido. Encerrando o sistema...");
+        }
     }
 
 
     public void OpcoesAdmin()
+
+
     {
         bool rodar = true;
 
@@ -164,6 +204,70 @@ public class Menu
 
         }
     }
+
+public void OpcoesNormais()
+    {
+        bool rodar = true;
+
+        while (rodar)
+        {
+            Console.Clear();
+            Console.WriteLine($"Bem-vindo, Usuário! O que você gostaria de fazer?");
+            Console.WriteLine("1. Mostrar Livros");
+            Console.WriteLine("2. Emprestar Livro");
+            Console.WriteLine("3. Devolver Livro");
+            Console.WriteLine("4. Sair");
+            int options = int.Parse(Console.ReadLine() ?? "0");
+
+            switch (options)
+            {
+                case 1:
+                    Console.Clear();
+                    Console.WriteLine("Listando Livros...");
+                    var livros = logica.MostrarLivros();
+
+                    if (livros.Count == 0)
+                    {
+                        Console.WriteLine("Nenhum livro encontrado.");
+                    }
+                    else
+                    {
+                        foreach (var livro in livros)
+                        {
+                            livro.ExibirInformacoes();
+                            Console.WriteLine("-----------------------------");
+                        }
+                            Console.WriteLine("Pressione Enter para continuar...");
+                            Console.ReadLine();
+                    }
+                    break;
+                case 2:
+                foreach (var livro in logica.MostrarLivros())
+                    {
+                        livro.ExibirInformacoes();
+                        Console.WriteLine("-----------------------------");
+                    }
+                    Console.WriteLine("Digite o título do livro que deseja pegar emprestado:");
+                    string tituloEmprestar = Console.ReadLine() ?? "";
+                    logica.EmprestarLivrio(tituloEmprestar, usuarioLogado??new UsuarioComum("Usuário Desconecido", "desconhecido@exemplo.com"));
+                    break;
+                case 3:
+                Console.WriteLine("Digite o título do livro que deseja devolver:");
+                    string tituloDevolver = Console.ReadLine() ?? "";
+                    logica.DevolverLivro(tituloDevolver);
+                    break;
+                case 4:
+                    Console.WriteLine("Saindo do sistema...");
+                    rodar = false;
+                    break;
+                default:
+                    Console.WriteLine("Opção inválida. Por favor, escolha uma opção válida.");
+                    break;
+            }
+
+        }
+    }
+
 }
 
 
@@ -171,12 +275,16 @@ public class Logica
 {
     private List<Usuario> _usuarios = new();
     private List<Livro> _livros = new();
+    private List<Emprestimo> _emprestimos = new();
 
     public Logica()
     {
         var livrosCarregados = SalvarLivros.Carregar();
         _livros = livrosCarregados;
         Console.WriteLine(_livros.Count + " livros carregados com sucesso.");
+        var usuariosCarregados = GuardarUsuarios.Desserializar();
+        _usuarios = usuariosCarregados;
+        Console.WriteLine(_usuarios.Count + " usuários carregados com sucesso.");
     }
 
 
@@ -206,6 +314,66 @@ public class Logica
             SalvarLivros.Salvar(_livros);
         }
     }
+
+    public void EmprestarLivrio(string tituloEmprestar, Usuario usuario)
+    {
+        var livroParaEmprestar = _livros.Find(l => l.Titulo == tituloEmprestar);
+        if (livroParaEmprestar == null)
+        {
+            Console.WriteLine("Livro não encontrado.");
+        }
+        else if (livroParaEmprestar is IEmprestavel emprestavel)
+        {
+            emprestavel.Emprestar();
+            _emprestimos.Add(new Emprestimo(usuario, livroParaEmprestar));
+        }
+        else
+        {
+            Console.WriteLine("Este livro não é emprestável.");
+        }
+    }
+
+    public void DevolverLivro(string tituloDevolver)
+    {
+        var livroParaDevolver = _livros.Find(l => l.Titulo == tituloDevolver);
+        if (livroParaDevolver == null)
+        {
+            Console.WriteLine("Livro não encontrado.");
+        }
+        else if (livroParaDevolver is IEmprestavel emprestavel)
+        {
+            emprestavel.Devolver();
+        }
+        else
+        {
+            Console.WriteLine("Este livro não é emprestável.");
+        }
+    }
+
+    public void CadastrarUsuario(Usuario usuario)
+    {
+        _usuarios.Add(usuario);
+        GuardarUsuarios.Salvar(_usuarios);
+    }
+    public Usuario? Login(string nome, string email)
+    {
+        var usuarioEncontrado = _usuarios.Find(u => u.Nome == nome && u.Email == email);
+        if (usuarioEncontrado != null)
+        {
+            Console.WriteLine($"Bem-vindo, {usuarioEncontrado.Nome}!");
+            usuarioEncontrado.ExibirInformacoes();
+        }
+        else
+        {
+            Console.WriteLine("Usuário não encontrado. Por favor, verifique suas credenciais.");
+        }
+        return usuarioEncontrado;
+    }
+
+     public void AdicionarEmprestimo(Emprestimo emprestimo)
+    {
+        _emprestimos.Add(emprestimo);
+    }
 }
 
 
@@ -216,7 +384,7 @@ public interface IEmprestavel
     void Devolver();
 }
 
-class Emprestimo
+public class Emprestimo
 {
     public Usuario Usuario { get; private set; }
     public Livro Livro { get; private set; }
@@ -237,19 +405,54 @@ class Emprestimo
 }
 
 
-public class GuardarUsuarios{
+public class GuardarUsuarios
+{
+
     public List<Usuario> Usuarios { get; set; } = new();
-    public static string Salvar(GuardarUsuarios dados)
+    private static readonly string filepath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Personal)}/usuariosComuns.json";
+    public static void Salvar(List<Usuario> dados)
     {
         var json = JsonSerializer.Serialize(dados);
+        Console.WriteLine($"{json} foi salvo com sucesso.");
+        File.WriteAllText(filepath, json);
+    }
+
+    public static List<Usuario> Desserializar()
+    {
+        if(!File.Exists(filepath))
+        {
+            Console.WriteLine($"O arquivo {filepath} não existe. Criando um novo arquivo.");
+            File.WriteAllText(filepath, "[]");
+        }
+
+        var usuariosDesserializados = SerializarUsuarios.Desserializar(filepath);
+        Console.WriteLine($"Os dados foram carregados de {filepath}");
+        return usuariosDesserializados;
+    }
+}
+
+public class SerializarUsuarios
+{
+    public List<Usuario> Usuarios { get; set; } = new();
+    public static string Serializar(List<Usuario> dados)
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
+        var json = JsonSerializer.Serialize(dados, options);
         Console.WriteLine($"{json} foi salvo com sucesso.");
         return json;
     }
 
-    public static void Desserializar(string json)
-    {
-        var usuariosDesserializados = JsonSerializer.Deserialize<GuardarUsuarios>(json);
-    }
+    public static List<Usuario> Desserializar(string filepath)
+        {
+        string json = File.ReadAllText(filepath);
+        var usuariosDesserializados = JsonSerializer.Deserialize<List<Usuario>>(json);
+        return usuariosDesserializados ?? new List<Usuario>();
+        }
+    
 }
 
 [JsonDerivedType(typeof(Admin), typeDiscriminator: "Admin")]
@@ -280,10 +483,11 @@ class Admin : Usuario
 
 class UsuarioComum : Usuario
 {
+    private static int _idCounter = 1;
     public int ID { get; private set; }
-    public UsuarioComum(string nome, string email, int id) : base(nome, email)
+    public UsuarioComum(string nome, string email) : base(nome, email)
     {
-        ID = id++;
+        ID = _idCounter++;
     }
 
     public override void ExibirInformacoes()
@@ -295,7 +499,8 @@ class UsuarioComum : Usuario
 
 public class SalvarLivros
 {
-    private const string filepath = @"/home/arthyzxs/Documentos/livros.json";
+
+    private static readonly string filepath = $"{Environment.GetFolderPath(Environment.SpecialFolder.Personal)}/livros.json";
     public static void Salvar(List<Livro> dados)
     {
         string json = SerializarLivros.Serializar(dados);
@@ -373,7 +578,7 @@ public enum Estado
 class LivroFisico : Livro, IEmprestavel
 {
     public int NumeroPaginas { get; private set; }
-    public Estado Estado { get; private set; } = Estado.Disponivel;
+    public Estado Estado { get; set; } = Estado.Disponivel;
     public LivroFisico(string titulo, string autor, int anoPublicacao, int numeroPaginas)
         : base(titulo, autor, anoPublicacao)
     {

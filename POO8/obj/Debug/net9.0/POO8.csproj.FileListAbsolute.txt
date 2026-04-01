@@ -12,3 +12,4 @@
 /home/arthyzxs/Documentos/Projetos POO/POO8/obj/Debug/net9.0/POO8.pdb
 /home/arthyzxs/Documentos/Projetos POO/POO8/obj/Debug/net9.0/POO8.genruntimeconfig.cache
 /home/arthyzxs/Documentos/Projetos POO/POO8/obj/Debug/net9.0/ref/POO8.dll
+/home/arthyzxs/Documentos/Projetos POO/POO8/obj/Debug/net9.0/POO8.sourcelink.json
